@@ -20,7 +20,7 @@ const unsigned int kHeight = 600;
 const std::string  kCube_shader_path = "/Users/yuelu/develop/Graphics/LearnOpenGl/colors/";
 const std::string  kLight_shader_path = "/Users/yuelu/develop/Graphics/LearnOpenGl/colors/";
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 6.0f));
 float lastX = kWidth / 2.0f;
 float lastY = kHeight / 2.0f;
 bool bFirst_mouse = true;
@@ -145,6 +145,7 @@ int main() {
         lighting_shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
         lighting_shader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
         lighting_shader.setVec3("lightPos", light_pos);
+        lighting_shader.setVec3("viewPos", camera.Position);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom),
                                                 (float)kWidth / (float)kHeight,
