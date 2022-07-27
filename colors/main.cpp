@@ -114,6 +114,20 @@ int main() {
             -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
     };
 
+    // positions all containers
+    glm::vec3 cube_positions[] = {
+            glm::vec3( 0.0f,  0.0f,  0.0f),
+            glm::vec3( 2.0f,  5.0f, -15.0f),
+            glm::vec3(-1.5f, -2.2f, -2.5f),
+            glm::vec3(-3.8f, -2.0f, -12.3f),
+            glm::vec3( 2.4f, -0.4f, -3.5f),
+            glm::vec3(-1.7f,  3.0f, -7.5f),
+            glm::vec3( 1.3f, -2.0f, -2.5f),
+            glm::vec3( 1.5f,  2.0f, -2.5f),
+            glm::vec3( 1.5f,  0.2f, -1.5f),
+            glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
+
     unsigned int vbo, cube_vao;
     glGenVertexArrays(1, &cube_vao);
     glGenBuffers(1, &vbo);
@@ -162,7 +176,8 @@ int main() {
         glm::vec3 ambient_color = light_color * glm::vec3(0.2f);
 
         lighting_shader.use();
-        lighting_shader.setVec3("light.position", light_pos);
+        // lighting_shader.setVec3("light.position", light_pos);
+        lighting_shader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
         lighting_shader.setVec3("viewPos", camera.Position);
         lighting_shader.setFloat("material.shininess", 32.0f);
         lighting_shader.setVec3("light.ambient",  ambient_color);
@@ -187,21 +202,29 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, specular_map);
 
         // render the cube
+        // glBindVertexArray(cube_vao);
+        // glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(cube_vao);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
+        for(unsigned int i=0;i<10;i++) {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cube_positions[i]);
+            float angle = 20.0f * i;
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            lighting_shader.setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         // also draw the lamp object
-        lightcube_shader.use();
-        lightcube_shader.setMat4("projection", projection);
-        lightcube_shader.setMat4("view", view);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, light_pos);
-        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-        lightcube_shader.setMat4("model", model);
-
-        glBindVertexArray(light_cube_vao);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+//        lightcube_shader.use();
+//        lightcube_shader.setMat4("projection", projection);
+//        lightcube_shader.setMat4("view", view);
+//        model = glm::mat4(1.0f);
+//        model = glm::translate(model, light_pos);
+//        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+//        lightcube_shader.setMat4("model", model);
+//
+//        glBindVertexArray(light_cube_vao);
+//        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
