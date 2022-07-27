@@ -180,9 +180,12 @@ int main() {
         lighting_shader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
         lighting_shader.setVec3("viewPos", camera.Position);
         lighting_shader.setFloat("material.shininess", 32.0f);
-        lighting_shader.setVec3("light.ambient",  ambient_color);
-        lighting_shader.setVec3("light.diffuse",  diffuse_color);
+        lighting_shader.setVec3("light.ambient",  0.2f, 0.2f, 0.2f);
+        lighting_shader.setVec3("light.diffuse",  0.5f, 0.5f, 0.5f);
         lighting_shader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        lighting_shader.setFloat("light.constant", 1.0f);
+        lighting_shader.setFloat("light.linear", 0.09f);
+        lighting_shader.setFloat("light.quadratic", 0.032);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom),
                                                 (float)kWidth / (float)kHeight,
@@ -215,16 +218,16 @@ int main() {
         }
 
         // also draw the lamp object
-//        lightcube_shader.use();
-//        lightcube_shader.setMat4("projection", projection);
-//        lightcube_shader.setMat4("view", view);
-//        model = glm::mat4(1.0f);
-//        model = glm::translate(model, light_pos);
-//        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-//        lightcube_shader.setMat4("model", model);
-//
-//        glBindVertexArray(light_cube_vao);
-//        glDrawArrays(GL_TRIANGLES, 0, 36);
+        lightcube_shader.use();
+        lightcube_shader.setMat4("projection", projection);
+        lightcube_shader.setMat4("view", view);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, light_pos);
+        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+        lightcube_shader.setMat4("model", model);
+
+        glBindVertexArray(light_cube_vao);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
