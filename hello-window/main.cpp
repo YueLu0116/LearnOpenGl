@@ -42,9 +42,9 @@ int main() {
     while(!glfwWindowShouldClose(window)){
 
         process_input(window);
-
-        glClearColor(0.2f, 0.3f, 0.4f, 0.5f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        // clear means clear the screen with a color
+        glClearColor(0.2f, 0.3f, 0.4f, 0.5f);  // state settings
+        glClear(GL_COLOR_BUFFER_BIT);          // state using
 
         glfwSwapBuffers(window);
         glfwPollEvents();

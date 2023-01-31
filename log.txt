@@ -1,0 +1,2 @@
+# 2023-01-31
+1. review opengl introduction and project "hello-window"
