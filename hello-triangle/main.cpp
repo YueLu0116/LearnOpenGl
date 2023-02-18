@@ -61,13 +61,24 @@ int main() {
             -0.5, -0.5, 0.0f,
             0.5, -0.5, 0.0f,
             0.0f, 0.5f, 0.0f,
+            1.0f,0.5f, 0.0f,
     };
-    unsigned int vbo, vao;
+    unsigned int indices[] ={
+            0,1,2,
+            1,3,2,
+    };
+    unsigned int vbo, vao, ebo;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
+
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof indices, indices, GL_STATIC_DRAW);
+
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STATIC_DRAW);
+
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -135,7 +146,9 @@ int main() {
 
         glUseProgram(shader_program);
         glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
