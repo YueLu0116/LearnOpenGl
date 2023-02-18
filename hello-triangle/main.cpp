@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
@@ -14,13 +15,19 @@ const char *vertex_shader_source = "#version 330 core\n"
                                  "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
                                  "}\0";
 
-const char *fragment_shader_source = "#version 330 core\n"
+const char *fragment_shader_source_yellow = "#version 330 core\n"
                               "out vec4 FragColor;\n"
                               "void main()\n"
                               "{\n"
                               "    FragColor = vec4(1.0f, 0.7f, 0.5f, 1.0f);\n"
                               "}\n";
 
+const char *fragment_shader_source_blue = "#version 330 core\n"
+                                            "out vec4 FragColor;\n"
+                                            "void main()\n"
+                                            "{\n"
+                                            "    FragColor = vec4(0.19f, 0.09f, 0.72f, 1.0f);\n"
+                                            "}\n";
 
 inline void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -30,6 +37,43 @@ inline void process_input(GLFWwindow* window) {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
+}
+
+bool genShaders(GLenum shader_types, const char* shader_source, unsigned int& shader) {
+    shader = glCreateShader(shader_types);
+    glShaderSource(shader, 1, &shader_source, nullptr);
+    glCompileShader(shader);
+    int success = 0;
+    char info[512];
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (success == 0) {
+        glGetShaderInfoLog(shader, 512, nullptr, info);
+        std::clog << "Failed to compile gl vertex shader. Reason: " << info << "\n";
+        glDeleteShader(shader);
+        return false;
+    }
+    return true;
+}
+
+bool genShaderProgram(const std::vector<unsigned int>& shader_vec, unsigned int& shader_program) {
+    shader_program = glCreateProgram();
+    for (auto shader : shader_vec) {
+        glAttachShader(shader_program, shader);
+    }
+    glLinkProgram(shader_program);
+    for (auto shader : shader_vec){
+        glDeleteShader(shader);
+    }
+    int success = 0;
+    char info[512];
+    glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
+    if (success == 0) {
+        glGetProgramInfoLog(shader_program, 512, nullptr, info);
+        std::clog << "Failed to link gl shaders. Reason: " << info << "\n";
+        glDeleteProgram(shader_program);
+        return false;
+    }
+    return true;
 }
 
 int main() {
@@ -83,53 +127,31 @@ int main() {
     glEnableVertexAttribArray(0);
 
     // shaders
+    std::vector<unsigned int> shader_vec{};
     unsigned int vertex_shader = 0;
-    vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex_shader, 1, &vertex_shader_source, nullptr);
-    glCompileShader(vertex_shader);
-    int success;
-    char info[512];
-    glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
-    if (success == 0) {
-        glGetShaderInfoLog(vertex_shader, 512, nullptr, info);
-        std::clog << "Failed to compile gl vertex shader. Reason: " << info << "\n";
-        glDeleteShader(vertex_shader);
+    bool ret = genShaders(GL_VERTEX_SHADER, vertex_shader_source, vertex_shader);
+    if (!ret) {
         glDeleteVertexArrays(1, &vao);
         glDeleteBuffers(1, &vbo);
         glfwTerminate();
         return -2;
     }
+    shader_vec.push_back(vertex_shader);
 
     unsigned int fragment_shader = 0;
-    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &fragment_shader_source, nullptr);
-    glCompileShader(fragment_shader);
-    success = 0;
-    glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
-    if (success == 0) {
-        glGetShaderInfoLog(vertex_shader, 512, nullptr, info);
-        std::clog << "Failed to compile gl fragment shader. Reason: " << info << "\n";
-        glDeleteShader(fragment_shader);
+    ret = genShaders(GL_FRAGMENT_SHADER, fragment_shader_source_yellow, fragment_shader);
+    if (!ret) {
         glDeleteShader(vertex_shader);
         glDeleteVertexArrays(1, &vao);
         glDeleteBuffers(1, &vbo);
         glfwTerminate();
         return -3;
     }
+    shader_vec.push_back(fragment_shader);
 
     unsigned int shader_program = 0;
-    shader_program = glCreateProgram();
-    glAttachShader(shader_program, vertex_shader);
-    glAttachShader(shader_program, fragment_shader);
-    glLinkProgram(shader_program);
-    glDeleteShader(fragment_shader);
-    glDeleteShader(vertex_shader);
-    success = 0;
-    glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
-    if(success == 0){
-        glGetProgramInfoLog(shader_program, 512, nullptr, info);
-        std::clog << "Failed to link gl shaders. Reason: " << info << "\n";
-        glDeleteProgram(shader_program);
+    ret = genShaderProgram(shader_vec, shader_program);
+    if (!ret) {
         glDeleteVertexArrays(1, &vao);
         glDeleteBuffers(1, &vbo);
         glfwTerminate();
