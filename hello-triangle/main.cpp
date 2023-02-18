@@ -4,6 +4,21 @@
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
+#define SHOUD_RETURN_N3 if (!ret) { \
+    glDeleteShader(vertex_shader);  \
+    glDeleteVertexArrays(2, vao); \
+    glDeleteBuffers(2, vbo); \
+    glfwTerminate(); \
+    return -3; \
+}
+
+#define SHOUD_RETURN_N4 if (!ret) { \
+    glDeleteVertexArrays(2, vao); \
+    glDeleteBuffers(2, vbo); \
+    glfwTerminate(); \
+    return -4; \
+}
+
 constexpr uint32_t kWidth = 800;
 constexpr uint32_t kHeight = 600;
 
@@ -29,14 +44,121 @@ const char *fragment_shader_source_blue = "#version 330 core\n"
                                             "    FragColor = vec4(0.19f, 0.09f, 0.72f, 1.0f);\n"
                                             "}\n";
 
-inline void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+inline void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-inline void process_input(GLFWwindow* window) {
+inline void processInput(GLFWwindow* window) {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
+}
+
+inline void drawTris(unsigned int shader_program, unsigned int vao) {
+    glUseProgram(shader_program);
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+bool genShaders(GLenum shader_types, const char* shader_source, unsigned int& shader);
+bool genShaderProgram(const std::vector<unsigned int>& shader_vec, unsigned int& shader_program);
+void genVertexData(const std::vector<float>& vertex_vec, unsigned int& vao, unsigned int& vbo);
+
+
+
+int main() {
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+    auto window = glfwCreateWindow(kWidth, kHeight, "LearnOpenGl", nullptr, nullptr);
+    if (!window) {
+        std::clog << "Failed to create GLFW window\n";
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+
+    if(!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))){
+        std::clog << "Failed to init glad\n";
+        glfwTerminate();
+        return -1;
+    }
+
+    glViewport(0, 0, kWidth, kHeight);
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+
+    // vertex settings
+    const std::vector<float> vertex1_vec {
+            -0.5, -0.5, 0.0f,
+            0.5, -0.5, 0.0f,
+            0.0f, 0.5f, 0.0f,
+    };
+    const std::vector<float> vertex2_vec {
+            0.5, -0.5, 0.0f,
+            1.0f,0.5f, 0.0f,
+            0.0f, 0.5f, 0.0f,
+    };
+
+    unsigned int vbo[2], vao[2];
+    glGenVertexArrays(2, vao);
+    glGenBuffers(2, vbo);
+    genVertexData(vertex1_vec, vao[0], vbo[0]);
+    genVertexData(vertex2_vec, vao[1], vbo[1]);
+
+    // shaders
+    std::vector<unsigned int> shader_yellow_vec{}, shader_blue_vec{};
+    unsigned int vertex_shader = 0;
+    bool ret = genShaders(GL_VERTEX_SHADER, vertex_shader_source, vertex_shader);
+    if (!ret) {
+        glDeleteVertexArrays(2, vao);
+        glDeleteBuffers(2, vbo);
+        glfwTerminate();
+        return -2;
+    }
+    shader_yellow_vec.push_back(vertex_shader);
+    shader_blue_vec.push_back(vertex_shader);
+
+    unsigned int fragment_shader_yellow = 0;
+    ret = genShaders(GL_FRAGMENT_SHADER, fragment_shader_source_yellow, fragment_shader_yellow);
+    SHOUD_RETURN_N3
+    shader_yellow_vec.push_back(fragment_shader_yellow);
+
+    unsigned int fragment_shader_blue = 0;
+    ret = genShaders(GL_FRAGMENT_SHADER, fragment_shader_source_blue, fragment_shader_blue);
+    SHOUD_RETURN_N3
+    shader_blue_vec.push_back(fragment_shader_blue);
+
+    // link
+    unsigned int shader_yellow_program, shader_blue_program = 0;
+    ret = genShaderProgram(shader_yellow_vec, shader_yellow_program);
+    SHOUD_RETURN_N4
+    ret = genShaderProgram(shader_blue_vec, shader_blue_program);
+    SHOUD_RETURN_N4
+
+    // render loop
+    while(!glfwWindowShouldClose(window)){
+
+        processInput(window);
+
+        glClearColor(0.2f, 0.3f, 0.4f, 0.5f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        drawTris(shader_yellow_program, vao[0]);
+        drawTris(shader_blue_program, vao[1]);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    glDeleteProgram(shader_yellow_program);
+    glDeleteProgram(shader_blue_program);
+    glDeleteVertexArrays(2, vao);
+    glDeleteBuffers(2, vbo);
+    glfwTerminate();
+    return 0;
 }
 
 bool genShaders(GLenum shader_types, const char* shader_source, unsigned int& shader) {
@@ -76,109 +198,10 @@ bool genShaderProgram(const std::vector<unsigned int>& shader_vec, unsigned int&
     return true;
 }
 
-int main() {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-    auto window = glfwCreateWindow(kWidth, kHeight, "LearnOpenGl", nullptr, nullptr);
-    if (!window) {
-        std::clog << "Failed to create GLFW window\n";
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-
-    if(!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))){
-        std::clog << "Failed to init glad\n";
-        glfwTerminate();
-        return -1;
-    }
-
-    glViewport(0, 0, kWidth, kHeight);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    // vertex settings
-    float vertex[] = {
-            -0.5, -0.5, 0.0f,
-            0.5, -0.5, 0.0f,
-            0.0f, 0.5f, 0.0f,
-            1.0f,0.5f, 0.0f,
-    };
-    unsigned int indices[] ={
-            0,1,2,
-            1,3,2,
-    };
-    unsigned int vbo, vao, ebo;
-    glGenVertexArrays(1, &vao);
+void genVertexData(const std::vector<float>& vertex_vec, unsigned int& vao, unsigned int& vbo) {
     glBindVertexArray(vao);
-
-    glGenBuffers(1, &ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof indices, indices, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * static_cast<GLsizeiptr>(vertex_vec.size()), vertex_vec.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)nullptr);
     glEnableVertexAttribArray(0);
-
-    // shaders
-    std::vector<unsigned int> shader_vec{};
-    unsigned int vertex_shader = 0;
-    bool ret = genShaders(GL_VERTEX_SHADER, vertex_shader_source, vertex_shader);
-    if (!ret) {
-        glDeleteVertexArrays(1, &vao);
-        glDeleteBuffers(1, &vbo);
-        glfwTerminate();
-        return -2;
-    }
-    shader_vec.push_back(vertex_shader);
-
-    unsigned int fragment_shader = 0;
-    ret = genShaders(GL_FRAGMENT_SHADER, fragment_shader_source_yellow, fragment_shader);
-    if (!ret) {
-        glDeleteShader(vertex_shader);
-        glDeleteVertexArrays(1, &vao);
-        glDeleteBuffers(1, &vbo);
-        glfwTerminate();
-        return -3;
-    }
-    shader_vec.push_back(fragment_shader);
-
-    unsigned int shader_program = 0;
-    ret = genShaderProgram(shader_vec, shader_program);
-    if (!ret) {
-        glDeleteVertexArrays(1, &vao);
-        glDeleteBuffers(1, &vbo);
-        glfwTerminate();
-        return -4;
-    }
-
-    // render loop
-    while(!glfwWindowShouldClose(window)){
-
-        process_input(window);
-
-        glClearColor(0.2f, 0.3f, 0.4f, 0.5f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glUseProgram(shader_program);
-        glBindVertexArray(vao);
-        //glDrawArrays(GL_TRIANGLES, 0, 6);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    glDeleteProgram(shader_program);
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
-    glfwTerminate();
-    return 0;
 }
