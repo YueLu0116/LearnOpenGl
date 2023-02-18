@@ -63,9 +63,9 @@ int main() {
             0.0f, 0.5f, 0.0f,
     };
     unsigned int vbo, vao;
-    glGenBuffers(1, &vbo);
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
+    glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
@@ -91,7 +91,6 @@ int main() {
 
     unsigned int fragment_shader = 0;
     fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &fragment_shader_source, nullptr);
     glShaderSource(fragment_shader, 1, &fragment_shader_source, nullptr);
     glCompileShader(fragment_shader);
     success = 0;
