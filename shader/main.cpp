@@ -83,6 +83,7 @@ int main() {
         //auto timeValue = static_cast<float>(glfwGetTime());
         //float greenValue = std::sin(timeValue) / 2.0f + 0.5f;
         //shader.setFloat4("ourColor", std::vector<float>{0.0f, greenValue, 0.0f, 1.0f});
+        //shader.setFloat("xOffset", 0.5f);
         drawTris(shader, vao);
 
         glfwSwapBuffers(window);
