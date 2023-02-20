@@ -28,6 +28,7 @@ inline void drawTris(const Shader &shader, unsigned int vao) {
 }
 
 void genVertexData(const std::vector<float>& vertex_vec, unsigned int& vao, unsigned int& vbo);
+void genVertexWithColorData(const std::vector<float>& vertex_vec, unsigned int& vao, unsigned int& vbo);
 
 int main() {
     glfwInit();
@@ -55,15 +56,15 @@ int main() {
 
     // vertex settings
     const std::vector<float> vertex_vec {
-            -0.5, -0.5, 0.0f,
-            0.5, -0.5, 0.0f,
-            0.0f, 0.5f, 0.0f,
+            -0.5, -0.5, 0.0f,  1.0f, 0.0f, 0.0f,
+            0.5, -0.5, 0.0f,   0.0f, 1.0f, 0.0f,
+            0.0f, 0.5f, 0.0f,  0.0f, 0.0f, 1.0f
     };
 
     unsigned int vbo, vao;
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
-    genVertexData(vertex_vec, vao, vbo);
+    genVertexWithColorData(vertex_vec, vao, vbo);
 
     // shaders
     auto cur_path = std::filesystem::current_path();
@@ -79,9 +80,9 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         // draw
-        float timeValue = glfwGetTime();
-        float greenValue = std::sin(timeValue) / 2.0f + 0.5f;
-        shader.setFloat4("ourColor", std::vector<float>{0.0f, greenValue, 0.0f, 1.0f});
+        //auto timeValue = static_cast<float>(glfwGetTime());
+        //float greenValue = std::sin(timeValue) / 2.0f + 0.5f;
+        //shader.setFloat4("ourColor", std::vector<float>{0.0f, greenValue, 0.0f, 1.0f});
         drawTris(shader, vao);
 
         glfwSwapBuffers(window);
@@ -100,4 +101,14 @@ void genVertexData(const std::vector<float>& vertex_vec, unsigned int& vao, unsi
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * static_cast<GLsizeiptr>(vertex_vec.size()), vertex_vec.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)nullptr);
     glEnableVertexAttribArray(0);
+}
+
+void genVertexWithColorData(const std::vector<float>& vertex_vec, unsigned int& vao, unsigned int& vbo) {
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * static_cast<GLsizeiptr>(vertex_vec.size()), vertex_vec.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)nullptr);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(3* sizeof(float)));
+    glEnableVertexAttribArray(1);
 }
