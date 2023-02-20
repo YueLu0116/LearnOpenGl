@@ -10,6 +10,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include <iostream>
 
 class Shader
@@ -99,7 +100,14 @@ public:
     {
         glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
     }
-
+    void setFloat4(const std::string &name, const std::vector<float>& values) const
+    {
+        if (values.size() != 4)
+        {
+            return;
+        }
+        glUniform4f(glGetUniformLocation(ID, name.c_str()), values[0], values[1], values[2], values[3]);
+    }
 private:
     // utility function for checking shader compilation/linking errors.
     // ------------------------------------------------------------------------

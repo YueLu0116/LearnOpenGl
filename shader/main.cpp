@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include <filesystem>
 #include <vector>
@@ -77,6 +78,10 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.4f, 0.5f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // draw
+        float timeValue = glfwGetTime();
+        float greenValue = std::sin(timeValue) / 2.0f + 0.5f;
+        shader.setFloat4("ourColor", std::vector<float>{0.0f, greenValue, 0.0f, 1.0f});
         drawTris(shader, vao);
 
         glfwSwapBuffers(window);
