@@ -10,7 +10,6 @@ uniform sampler2D texture2;
 
 void main()
 {
-	vec2 flipTexCoord = vec2(TexCoord.x, TexCoord.y);
 	// linearly interpolate between both textures (80% texture1, 20% texture2)
-	FragColor = mix(texture(texture1, TexCoord), texture(texture2, flipTexCoord), 0.2);
+	FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2);
 }
