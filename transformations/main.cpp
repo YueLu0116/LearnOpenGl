@@ -39,9 +39,11 @@ int main() {
         return -1;
     }
 
-    Shader our_shaders("/Users/yuelu/develop/Graphics/LearnOpenGl/transformations/trans.vs",
-                       "/Users/yuelu/develop/Graphics/LearnOpenGl/transformations/trans.fs");
+    Shader shaders_trans_rot("../trans_vs.glsl",
+                             "../trans_fs.glsl");
 
+    Shader shaders_trans("../trans_vs_2.glsl",
+                             "../trans_fs.glsl");
     float vertices[] = {
             // positions          // texture coords
             0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // top right
@@ -90,7 +92,7 @@ int main() {
     // load image, create texture and generate mipmaps
     int width, height, nr_channels;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    unsigned char *data = stbi_load("/Users/yuelu/develop/Graphics/LearnOpenGl/texture/resource/messi.jpeg",
+    unsigned char *data = stbi_load("../../texture/resource/messi.jpeg",
                                     &width,
                                     &height,
                                     &nr_channels,
@@ -114,7 +116,7 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // load image, create texture and generate mipmaps
-    data = stbi_load("/Users/yuelu/develop/Graphics/LearnOpenGl/texture/resource/awesomeface.png",
+    data = stbi_load("../../texture/resource/awesomeface.png",
                      &width,
                      &height,
                      &nr_channels,
@@ -131,9 +133,9 @@ int main() {
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
-    our_shaders.use();
-    our_shaders.setInt("texture1", 0);
-    our_shaders.setInt("texture2", 1);
+    shaders_trans_rot.use();
+    shaders_trans_rot.setInt("texture1", 0);
+    shaders_trans_rot.setInt("texture2", 1);
 
 
     // render loop
@@ -155,16 +157,29 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, texture2);
 
         // create transformations
-        glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 transform_trans_rot = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+        transform_trans_rot = glm::translate(transform_trans_rot, glm::vec3(0.5f, -0.5f, 0.0f));
+        transform_trans_rot = glm::rotate(transform_trans_rot, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        glm::mat4 transform_trans = glm::mat4(1.0f);
+        transform_trans = glm::translate(transform_trans, glm::vec3(-0.5f, 0.5f, 0.0f));
+        transform_trans = glm::scale(transform_trans, glm::vec3(glm::sin((float)glfwGetTime()),
+                                                                glm::sin((float)glfwGetTime()), 0.0f));
+
+
 
         // get matrix's uniform location and set matrix
-        our_shaders.use();
-        unsigned int transformLoc = glGetUniformLocation(our_shaders.ID, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+        shaders_trans_rot.use();
+        unsigned int transformLoc = glGetUniformLocation(shaders_trans_rot.ID, "transform_trans_rot");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform_trans_rot));
 
         // render container
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        shaders_trans.use();
+        unsigned int transformOnly = glGetUniformLocation(shaders_trans.ID, "transform_trans");
+        glUniformMatrix4fv(transformOnly, 1, GL_FALSE, glm::value_ptr(transform_trans));
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
