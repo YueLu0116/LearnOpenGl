@@ -76,8 +76,8 @@ int main()
 
     // build and compile our shader zprogram
     // ------------------------------------
-    Shader ourShader("/Users/yuelu/develop/Graphics/LearnOpenGl/camera/trans.vs",
-                     "/Users/yuelu/develop/Graphics/LearnOpenGl/camera/trans.fs");
+    Shader ourShader("../trans_vs.glsl",
+                     "../trans_fs.glsl");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -170,7 +170,7 @@ int main()
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    unsigned char *data = stbi_load("/Users/yuelu/develop/Graphics/LearnOpenGl/texture/resource/messi.jpeg",
+    unsigned char *data = stbi_load("../../texture/resource/messi.jpeg",
                                     &width,
                                     &height,
                                     &nrChannels,
@@ -196,7 +196,7 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // load image, create texture and generate mipmaps
-    data = stbi_load("/Users/yuelu/develop/Graphics/LearnOpenGl/texture/resource/awesomeface.png",
+    data = stbi_load("../../texture/resource/awesomeface.png",
                      &width,
                      &height,
                      &nrChannels,
